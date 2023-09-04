@@ -19,7 +19,7 @@ def get_birthdays_per_week(users):
         # Check if the user's birthday is today or in the future
         if birthday >= today:
             # Check if the birthday falls on a weekend (Saturday or Sunday)
-            if birth_weekday == 'Saturday' or birth_weekday == 'Sunday':
+            if birth_weekday in ['Saturday', 'Sunday']:
                 next_monday = (today + timedelta(days=(7 - today.weekday()))).strftime('%A')
                 birthday_schedule.setdefault(next_monday, []).append(user['name'])
             else:
