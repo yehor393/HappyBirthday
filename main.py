@@ -2,61 +2,30 @@ from datetime import date, datetime, timedelta
 
 
 def get_birthdays_per_week(users):
-    """
-    Get a schedule of birthdays per week for a list of users.
-
-    Args:
-        users (list): A list of user dictionaries with "name" and "birthday" keys.
-
-    Returns:
-        dict: A dictionary where keys are weekdays and values are lists of names.
-    """
 
     today = date.today()
-    weekdays = {
-        0: "Monday",
-        1: "Tuesday",
-        2: "Wednesday",
-        3: "Thursday",
-        4: "Friday",
-        5: "Saturday",
-        6: "Sunday",
-    }
     birthday_schedule = {}
 
-    def get_birthday_year(birthday):
-        return birthday.replace(year=today.year + 1) if birthday.month == 1 else birthday.replace(year=today.year)
-
-    def add_to_schedule(weekday, name):
-        if weekday not in birthday_schedule:
-            birthday_schedule[weekday] = []
-        if name not in birthday_schedule[weekday]:
-            birthday_schedule[weekday].append(name)
-
-    next_week_start = today - timedelta(days=today.weekday()) + timedelta(days=6)
-    next_week_start_1 = next_week_start + timedelta(days=1)
-    end_for_next_week = today + timedelta(days=6)
-    next_friday = today - timedelta(days=today.weekday()) + timedelta(days=11)
-    start_current_week = today - timedelta(days=today.weekday())
-
     for user in users:
-        if user["birthday"] is not None:
-            birthday = get_birthday_year(user["birthday"])
-            birth_weekday = weekdays.get(birthday.weekday())
-            is_weekend = birth_weekday in ['Saturday', 'Sunday']
+        # Check if the user has a valid birthday and if the month of the birthday is January
+        if user["birthday"] is not None and user["birthday"].month == 1:
+            birthday = user["birthday"].replace(year=today.year + 1)
+            birth_weekday = birthday.strftime('%A')
+        else:
+            # Replace the year of the user's birthday with the current year
+            birthday = user["birthday"].replace(year=today.year)
+            birth_weekday = birthday.strftime('%A')
 
-            if birthday >= start_current_week:
-                if is_weekend and next_friday >= birthday >= start_current_week:
-                    next_monday = weekdays.get(next_week_start_1.weekday())
-                    add_to_schedule(next_monday, user['name'])
-                elif next_friday >= birthday >= start_current_week:
-                    add_to_schedule(birth_weekday, user['name'])
-
-                if end_for_next_week > birthday > next_week_start:
-                    add_to_schedule(birth_weekday, user['name'])
+        # Check if the user's birthday is today or in the future
+        if birthday >= today:
+            # Check if the birthday falls on a weekend (Saturday or Sunday)
+            if birth_weekday == 'Saturday' or birth_weekday == 'Sunday':
+                next_monday = (today + timedelta(days=(7 - today.weekday()))).strftime('%A')
+                birthday_schedule.setdefault(next_monday, []).append(user['name'])
+            else:
+                birthday_schedule.setdefault(birth_weekday, []).append(user['name'])
 
     return birthday_schedule
-
 
 if __name__ == "__main__":
     users = [
